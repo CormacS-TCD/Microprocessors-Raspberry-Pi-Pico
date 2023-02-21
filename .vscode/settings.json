@@ -20,7 +20,7 @@
         }
     },
     "cmake.configureEnvironment": {
-        "PICO_SDK_PATH": "D:\\Pico\\pico-sdk"
+        "PICO_SDK_PATH": "C:\\Pico\\pico-sdk"
     },
     "cmake.generator": "NMake Makefiles",
     "cmake.configureOnOpen": true,

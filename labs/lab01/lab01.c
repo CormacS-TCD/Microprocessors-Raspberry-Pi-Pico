@@ -3,7 +3,7 @@
  *        Main entry point for the code.
  * 
  */
-
+#include <stdio.h>
 #include "pico/stdlib.h"
 
 /**

@@ -26,7 +26,7 @@
     "cmake.configureOnOpen": true,
     "cmake.buildBeforeRun": true,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "cortex-debug.openocdPath": "D:\\Pico\\tools\\openocd-picoprobe\\openocd.exe",
+    "cortex-debug.openocdPath": "C:\\Users\\corma\\Desktop\\Engineering_Modules\\3rd_Year_Semester 2\\Microprocessor Systems\\microprocessors-project\\tools\\openocd\\openocd.exe",
     "cortex-debug.enableTelemetry": false,
     "cortex-debug.registerUseNaturalFormat": false,
     "doxygen_runner.doxygen_command": "c:\\Program Files\\doxygen\\bin\\doxygen.exe",
@@ -34,5 +34,6 @@
     "files.associations": {
         "*.S": "arm",
         "*.h": "c"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }

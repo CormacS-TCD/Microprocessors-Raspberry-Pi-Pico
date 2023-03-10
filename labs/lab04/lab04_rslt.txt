@@ -1,0 +1,55 @@
+Debug Console output after running "info registers": 
+
+r0             0x20000620          536872480
+r1             0x10000353          268436307
+r2             0x200001b0          536871344
+r3             0x2000026c          536871532
+r4             0x10000264          268436068
+r5             0x20041f01          537140993
+r6             0x18000000          402653184
+r7             0x0                 0
+r8             0xffffffff          -1
+r9             0xffffffff          -1
+r10            0xffffffff          -1
+r11            0xffffffff          -1
+r12            0x34000040          872415296
+sp             0x20042000          0x20042000
+lr             0x10000223          268436003
+pc             0x10000352          0x10000352 <main>
+xPSR           0x61000000          1627389952
+msp            0x20042000          0x20042000
+psp            0xfffffffc          0xfffffffc
+primask        0x0                 0
+basepri        0x0                 0
+faultmask      0x0                 0
+control        0x0                 0
+{"output":"","token":24,"outOfBandRecord":[],"resultRecords":{"resultClass":"done","results":[]}}
+
+Debug console output after running "disassemble main_asm, +26":
+
+Dump of assembler code from 0x10000360 to 0x1000037a:
+   0x10000360 <main_asm+0>:	movs	r0, #25
+   0x10000362 <main_asm+2>:	bl	0x1000030c <asm_gpio_init>
+   0x10000366 <main_asm+6>:	movs	r0, #25
+   0x10000368 <main_asm+8>:	movs	r1, #1
+   0x1000036a <main_asm+10>:	bl	0x10000314 <asm_gpio_set_dir>
+   0x1000036e <loop+0>:	ldr	r0, [pc, #36]	; (0x10000394 <led_set_state+8>)
+   0x10000370 <loop+2>:	bl	0x10001244 <sleep_ms>
+   0x10000374 <loop+6>:	bl	0x1000037a <sub_toggle>
+   0x10000378 <loop+10>:	b.n	0x1000036e <loop>
+End of assembler dump.
+{"output":"","token":27,"outOfBandRecord":[],"resultRecords":{"resultClass":"done","results":[]}}
+
+Entry point address (in hex) of the blink_asm application:
+
+0x10000352 <main>
+
+Entry point address (in hex) of the “main_asm” function:
+
+0x10000360 <main_asm>
+
+The differences between the two assemblies is that when a constant value, such as #LED_VALUE_ON,
+is shown in the code, the version executed according to GDB replaces these constant names with their actual
+values defined at the start of the program. 
+
+

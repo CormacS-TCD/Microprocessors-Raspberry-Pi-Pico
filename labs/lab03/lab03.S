@@ -38,6 +38,7 @@ loop:
 
 @ Subroutine to toggle the LED GPIO pin value
 sub_toggle:
+    push    {lr}
     movs    r0, #LED_GPIO_PIN           @ Set the LED GPIO pin number to r0 for use by asm_gpio_get
     bl      asm_gpio_get                @ Get current the value of the LED GPIO pin (returns to r0)
     cmp     r0, #LED_VALUE_OFF          @ Check if the LED GPIO pin value is "off"
@@ -50,7 +51,8 @@ led_set_on:
 led_set_state:
     movs    r0, #LED_GPIO_PIN           @ Set the LED GPIO pin number to r0 for use by asm_gpio_put
     bl      asm_gpio_put                @ Update the the value of the LED GPIO pin (based on value in r1)
-    b       loop
+    @b       loop
+    pop     {pc}
 
 @ Set data alignment
 .data

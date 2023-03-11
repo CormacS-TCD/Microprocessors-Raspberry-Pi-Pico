@@ -30,48 +30,47 @@
 .equ    GPIO_ISR_OFFSET, 0x74         @ GPIO is int #13 (vector table entry 29)
 .equ    ALRM_ISR_OFFSET, 0x40         @ ALARM0 is int #0 (vector table entry 16)
 
-@ Entry point to the ASM portion of the program
+@ Entry point to the main_asm code
 main_asm:
-        ldr     r0, =msg
-        bl      printf
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        movs    r0, #GPIO_LED_PIN     @ Initialize the LED and set the direction to output
-        bl      asm_gpio_init
-        movs    r0, #GPIO_LED_PIN
+        movs    r0, #GPIO_LED_PIN     @ Store the LED pin value and initialise the LED
+        bl      asm_gpio_init         
+        movs    r0, #GPIO_LED_PIN     @ Store the LED pin again and the direction (output) and set the direction         
         movs    r1, #GPIO_DIR_OUT
         bl      asm_gpio_set_dir
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        movs    r0, #GPIO_BTN_DN      @ Initialize the DN button and set the direction to input
+
+        movs    r0, #GPIO_BTN_DN      @ Store the DN button pin value and initialise the button
         bl      asm_gpio_init
-        movs    r0, #GPIO_BTN_DN
+        movs    r0, #GPIO_BTN_DN      @ Store the DN button pin again and the direction (input) and set the direction
         movs    r1, #GPIO_DIR_IN
         bl      asm_gpio_set_dir
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        movs    r0, #GPIO_BTN_EN      @ Initialize the EN button and set the direction to input
+
+        movs    r0, #GPIO_BTN_EN      @ Store the EN button pin value and initialise the button
         bl      asm_gpio_init
-        movs    r0, #GPIO_BTN_EN
+        movs    r0, #GPIO_BTN_EN      @ Store the EN button pin again and the direction (input) and set the direction
         movs    r1, #GPIO_DIR_IN
         bl      asm_gpio_set_dir
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        movs    r0, #GPIO_BTN_UP      @ Initialize the UP button and set the direction to input
+
+        movs    r0, #GPIO_BTN_UP      @ Store the UP button pin value and initialise the button
         bl      asm_gpio_init
-        movs    r0, #GPIO_BTN_UP
+        movs    r0, #GPIO_BTN_UP      @ Store the UP button pin again and the direction (input) and set the direction
         movs    r1, #GPIO_DIR_IN
         bl      asm_gpio_set_dir
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        movs    r0, #GPIO_BTN_DN      @ Set DN, EN and UP to have interupts on them
+
+
+        movs    r0, #GPIO_BTN_DN      @ Set DN to be gpio interrupt enabled
         bl      asm_gpio_set_irq
-        movs    r0, #GPIO_BTN_EN
+        movs    r0, #GPIO_BTN_EN      @ Set EN to be gpio interrupt enabled
         bl      asm_gpio_set_irq
-        movs    r0, #GPIO_BTN_UP
+        movs    r0, #GPIO_BTN_UP      @ Set UP to be gpio interrupt enabled
         bl      asm_gpio_set_irq
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r0, =time_length
+
+        ldr     r0, =time             @ Initialise the time variable, controlling the flashing, with the default alarm time
         ldr     r1, =DFLT_ALARM_TIME
         str     r1, [r0]
-        bl      install_alarm_isr
-        bl      load_alarm
-        bl      install_gpio_isr
+
+        bl      install_alarm_isr     @ Branch to the install_alarm_isr subroutine
+        bl      reset_alarm           @ Branch to the reset_alarm subroutine
+        bl      install_gpio_isr      @ Branch to the install_gpio_isr subroutine
 
 
 
@@ -81,187 +80,202 @@ main_loop:
         b       main_loop
 
 
-
+@ Subroutine to establish the ALARM0 interrupt
 install_alarm_isr:
-        ldr     r2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)            @Get the offset of the vector table
-        ldr     r1, [r2]                                        @Load that into r1
-        movs    r2, #ALRM_ISR_OFFSET                            @Load the Timer0 offset
-        add     r2, r1                                          @Add the offset
-        ldr     r0, =toggle_led                                 @Get the address of the toggle_led isr
-        str     r0, [r2]                                        @Store that at the Timer0 isr address. This is the place where the processor will look at when an timer0 interrupt is triggered
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @Load ICPR register. Here we can clear pending interrupts
+        ldr     r2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)            @ Get the offset of the vector table and store it in r2
+        ldr     r1, [r2]                                        @ Load the offset into r1
+        movs    r2, #ALRM_ISR_OFFSET                            @ Load the Timer0 offset into r2
+        add     r2, r1                                          @ Add the offsets together, store in r2
+        ldr     r0, =toggle_led                                 @ Get the address of the toggle_led subroutine and store it in r0
+        str     r0, [r2]                                        @ Store the address of toggle_led at the Timer0 isr address, where the ALARM0 interrupt will look for a subroutine when it is called
+
+        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @ Load ICPR register
         movs    r0, #0x1
-        str     r0, [r2]                                        @Write a 1 in bit position 0 to clear the Timer0 interrupt
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)       @Load the ISER register. Here we can enable interrupts
+        str     r0, [r2]                                        @ Set the 0 bit position to 1 to disable the Timer0 interrupt
+
+        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)       @ Load the ISER register
         movs    r0, #0x1
-        str     r0, [r2]                                        @Write a 1 in bit positon 0 to enable the Timer0 interrupt
+        str     r0, [r2]                                        @ Set the 0 bit position to 1 to enable the Timer0 interrupt
+
         bx      lr
 
-load_alarm:
-        ldr     r1, =time_length
-        ldr     r0, [r1]          
+@ Subroutine to reset the ALARM0 interrupt after it is called
+reset_alarm:
+        ldr     r1, =time                                       @ Load in the current time value for flashing the LED
+        ldr     r0, [r1]                                        
         ldr     r2, =(TIMER_BASE)
         movs    r1, #0x1
         str     r1, [r2, #TIMER_INTE_OFFSET]
         ldr     r1, [r2, #TIMER_TIMELR_OFFSET]
         add     r1, r0
         str     r1, [r2, #TIMER_ALARM0_OFFSET]
+
         bx      lr
 
+@ Subroutine to establish the GPIO interrupt
 install_gpio_isr:
-        ldr     r2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
-        ldr     r1, [r2]
-        movs    r2, #GPIO_ISR_OFFSET
-        add     r2, r1
-        ldr     r0, =gpio_isr
-        str     r0, [r2]
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @Write to bit 13 in ICPR to clear a pending interupt
-        ldr     r0, =0x2001                                     @0x2001 = 2^13+1
-        str     r0, [r2]
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)       @Write to bit 13 in ISER to enable gpio interrupt
-        ldr     r0, =0x2001                                     @0x2001 = 2^13+1
-        str     r0, [r2]
+        ldr     r2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)            @ Get the offset of the vector table and store it in r2
+        ldr     r1, [r2]                                        @ Load the offset into r1
+        movs    r2, #GPIO_ISR_OFFSET                            @ Load the GPIO offset into r2
+        add     r2, r1                                          @ Add the offsets together, store in r2
+        ldr     r0, =gpio_isr                                   @ Get the address of the gpio_isr subroutine and store it in r0
+        str     r0, [r2]                                        @ Store the address of gpio_isr at the GPIO isr address, where the GPIO interrupt will look for a subroutine when it is called
+
+        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @ Write to bit 13 in ICPR to clear any gpio interrupts
+        ldr     r0, =0x2001                                     @ 0x2001 = 2^13+1
+        str     r0, [r2]                                        @ Store 0x2001 in the 13 bit position to disable the interrupt
+
+        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)       @ Write to bit 13 in ISER to enable gpio interrupt
+        ldr     r0, =0x2001                                     @ 0x2001 = 2^13+1
+        str     r0, [r2]                                        @ Store 0x2001 in the 13 bit position to enable the interrupt
+
         bx      lr
 
-
-
+@ Subroutine to toggle the LED on or off through the ALARM0 interrupt
 .thumb_func
 toggle_led:
-        push    {lr}                                            @ Store the link register to the stack as we will call nested subroutines
+        push    {lr}                                            @ Push the link register to the stack
 
-        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @Write to bit 13 in ICPR to clear a pending interupt
-        ldr     r0, =0x2001                                     @0x2001 = 2^13+1
-        str     r0, [r2]
+        ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @ Write to bit 13 in ICPR to clear any gpio interrupts
+        ldr     r0, =0x2001                                     @ 0x2001 = 2^13+1
+        str     r0, [r2]                                        @ Store 0x2001 in the 13 bit position to disable the interrupt
         
         ldr     r2, =(TIMER_BASE)
         movs    r1, #0x1
         str     r1, [r2, #TIMER_INTR_OFFSET]
 
-        ldr     r0, =lstate
-        ldr     r1, [r0]
-        cmp     r1, #0x0
-        beq     end_alarm_isr
+        ldr     r0, =lstate                                     @ Get the lstate variable into r0, which stores the LED state (flashing or not-flashing)
+        ldr     r1, [r0]                                        @ Load the variable into r1
+        cmp     r1, #0x0                                        @ Compare the lstate value with 0, which checks if the LED is not-flashing
+        beq     end_alarm_isr                                   @ If they are equal, the LED is not-flashing and branch to subroutine end_alarm_isr, continue else
 
-        movs    r0, #GPIO_LED_PIN           @ Set the LED GPIO pin number to r0 for use by asm_gpio_get
-        bl      asm_gpio_get                @ Get current the value of the LED GPIO pin (returns to r0)
-        cmp     r0, #LED_VAL_OFF          @ Check if the LED GPIO pin value is "off"
-        beq     led_set_on                  @ If it is "off" then then jump code to to turn it on
+        movs    r0, #GPIO_LED_PIN                               @ Set the LED GPIO pin number to r0 for use by asm_gpio_get
+        bl      asm_gpio_get                                    @ Get current the value of the LED GPIO pin (returns to r0)
+        cmp     r0, #LED_VAL_OFF                                @ Check if the LED GPIO pin value is "off"
+        beq     led_set_on                                      @ If it is "off" then jump code to to turn it on
 led_set_off:
-        movs    r1, #LED_VAL_OFF          @ The LED is currently "on" so we want to turn it "off"
-        b       led_set_state               @ Jump to portion of code where we set the state of the LED
+        movs    r1, #LED_VAL_OFF                                @ The LED is currently "on" so we want to turn it "off"
+        b       led_set_state                                   @ Jump to portion of code where we set the state of the LED
 led_set_on:
-        movs    r1, #LED_VAL_ON           @ The LED is currently "off" so we want to turn it "on"
+        movs    r1, #LED_VAL_ON                                 @ The LED is currently "off" so we want to turn it "on"
 led_set_state:
-        movs    r0, #GPIO_LED_PIN           @ Set the LED GPIO pin number to r0 for use by asm_gpio_put
-        bl      asm_gpio_put                @ Update the the value of the LED GPIO pin (based on value in r1)
+        movs    r0, #GPIO_LED_PIN                               @ Set the LED GPIO pin number to r0 for use by asm_gpio_put
+        bl      asm_gpio_put                                    @ Update the value of the LED GPIO pin (based on value in r1)
         
 end_alarm_isr:
-        bl      load_alarm
-        pop     {pc}                        @ Pop the link register from the stack to the program counter
+        bl      reset_alarm                                     @ Branch to the reset_alarm subroutine to reset the ALARM0 interrupt
+        pop     {pc}                                            @ Pop the link register from the stack to the program counter
 
+@ Subroutine to check the button that triggered the GPIO interrupt, and branch to take appropriate action
 .thumb_func
 gpio_isr:
-        push    {lr}   
+        push    {lr}                                            @ Push the link register to the stack
 
-        @Check status mask and do something
+        @ Check the status mask for which button triggered the interrupt and branch accordingly
         ldr     r2, =(IO_BANK0_BASE+IO_BANK0_PROC0_INTS2_OFFSET)
-        ldr     r1, [r2]                                    @Get the Status register
+        ldr     r1, [r2]                                        @Get the Status register
         ldr     r0, =GPIO_BTN_DN_MSK
         ands    r1,r0,r1
         cmp     r0, r1
-        beq     button_20                                   @If it is equal to the DN mask, then button 20 was pressed
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r1, [r2]                                    @Get the Status registe
+        beq     button_20                                       @If it matches the DN mask, then button 20 was pressed
+
+        ldr     r1, [r2]                                        @Get the Status register
         ldr     r0, =GPIO_BTN_EN_MSK
         ands    r1,r0,r1
         cmp     r0, r1                        
-        beq     button_21                                   @If it is equal to the EN mask, then button 21 was pressed
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        ldr     r1, [r2]                                    @Get the Status registe
+        beq     button_21                                       @If it matches the EN mask, then button 21 was pressed
+
+        ldr     r1, [r2]                                        @Get the Status register
         ldr     r0, =GPIO_BTN_UP_MSK
         ands    r1,r0,r1
         cmp     r0,r1
-        beq     button_22                                   @If it is equal to the UP mask, then button 22 was pressed
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        beq     button_22                                       @If it matches the UP mask, then button 22 was pressed
 
-
+@ Subroutine for when button 20 is pressed
 button_20:
+        @ Check the lstate variable, if it is not-flashing, branch to the button20_22 subroutine
         ldr     r0, =lstate
         ldr     r1, [r0]
         cmp     r1, #0x0
         beq     button20_22
 
-        ldr     r0, =msg
-        bl      printf
-        ldr     r0, =time_length
+        @ Else, load up the time variable and half it, halving the flashing rate
+        ldr     r0, =time
         ldr     r1, [r0]
         movs    r2, #0x1
         lsrs    r1, r1, r2
         str     r1, [r0]
+
         b       end_isr
 
+@ Subroutine for when button 21 is pressed
 button_21:
+        @ Check the lstate variable, if it is flashing, branch to the subroutine toggle_off_lstate
         ldr     r0, =lstate
         ldr     r1, [r0]
-
         cmp     r1, #0x1
         beq     toggle_off_lstate
+
+        @ Else, flip the lstate variable and set it to flashing
         movs    r1, #0x1
         str     r1, [r0]
-        b       end_isr
 
+        b       end_isr
 toggle_off_lstate:
+        @ Flip the lstate variable and set it to not-flashing
         movs    r1, #0x0
         str     r1, [r0]
 
-        @movs    r1, #LED_VAL_OFF
+        @ Turn off the LED
         movs    r0, #GPIO_LED_PIN       
         bl      asm_gpio_put
 
         b       end_isr
 
+@ Subroutine for when button 22 is pressed
 button_22:
+        @ Check the lstate variable, if it is not-flashing, branch to the button20_22 subroutine
         ldr     r0, =lstate
         ldr     r1, [r0]
         cmp     r1, #0x0
         beq     button20_22
 
-        ldr     r0, =msg3
-        bl      printf
-        ldr     r0, =time_length
+        @ Else, load up the time variable and double it, doubling the flashing rate
+        ldr     r0, =time
         ldr     r1, [r0]
         movs    r2, #0x1
         lsls    r1, r1, r2
         str     r1, [r0]
-        b       end_isr
 
+        b       end_isr
+@ Subroutine for when button 22 or button 20 is pressed
 button20_22:
+        @ Check the lstate variable, if it is flashing, skip over it
         ldr     r0, =lstate
         ldr     r1, [r0]
         cmp     r1, #0x1
         beq     end_isr
 
-        ldr     r0, =time_length
+        @ Else, load up the time variable and reset it to the default time variable
+        ldr     r0, =time
         ldr     r1, =DFLT_ALARM_TIME
         str     r1, [r0]        
 
         b       end_isr
-end_isr:
-        ldr     r2, =(IO_BANK0_BASE+0x0f8)                      @Load the INTR2 register
-        ldr     r0, =0x04440000                                 @0x04440000 = 2^26+2^22+2^18 to clear the interrupt
-        str     r0, [r2]
-        pop     {pc}
 
-.align 4
-msg:    .asciz "btn20\n"
-msg2:   .asciz "btn21\n"
-msg3:   .asciz "btn22\n"
+@ Subroutine to finish the GPIO interrupt call
+end_isr:
+        ldr     r2, =(IO_BANK0_BASE+0x0f8)                      @ Load the INTR2 register
+        ldr     r0, =0x04440000                                 @ 0x04440000 = 2^26+2^22+2^18
+        str     r0, [r2]                                        @ Clear the GPIO interrupt
+        pop     {pc}                                            @ Pop the link register from the stack to the program counter
+
+@ .align 4
+@ msg:    .asciz "btn20\n"
+@ msg2:   .asciz "btn21\n"
+@ msg3:   .asciz "btn22\n"
 
 .data
 lstate: .word   DFLT_STATE_STRT
 ltimer: .word   DFLT_ALARM_TIME
-time_length: .word 0
+time:   .word   0

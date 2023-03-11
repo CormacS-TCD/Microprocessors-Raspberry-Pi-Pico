@@ -153,9 +153,15 @@ toggle_led:
         cmp     r0, #LED_VAL_OFF                                @ Check if the LED GPIO pin value is "off"
         beq     led_set_on                                      @ If it is "off" then jump code to to turn it on
 led_set_off:
+        ldr r0, =msg_off
+        bl printf
+
         movs    r1, #LED_VAL_OFF                                @ The LED is currently "on" so we want to turn it "off"
         b       led_set_state                                   @ Jump to portion of code where we set the state of the LED
 led_set_on:
+        ldr r0, =msg_on
+        bl printf
+
         movs    r1, #LED_VAL_ON                                 @ The LED is currently "off" so we want to turn it "on"
 led_set_state:
         movs    r0, #GPIO_LED_PIN                               @ Set the LED GPIO pin number to r0 for use by asm_gpio_put
@@ -192,6 +198,10 @@ gpio_isr:
 
 @ Subroutine for when button 20 is pressed
 button_20:
+
+        ldr r0, =msg20
+        bl printf
+
         @ Check the lstate variable, if it is not-flashing, branch to the button20_22 subroutine
         ldr     r0, =lstate
         ldr     r1, [r0]
@@ -199,6 +209,9 @@ button_20:
         beq     button20_22
 
         @ Else, load up the ltimer variable and half it, doubling the flashing rate
+        ldr r0, =msg20_desc
+        bl printf
+
         ldr     r0, =ltimer
         ldr     r1, [r0]
         movs    r2, #0x1
@@ -208,6 +221,10 @@ button_20:
         b       end_gpio_isr
 @ Subroutine for when button 21 is pressed
 button_21:
+
+        ldr r0, =msg21
+        bl printf
+
         @ Check the lstate variable, if it is flashing, branch to the subroutine toggle_off_lstate
         ldr     r0, =lstate
         ldr     r1, [r0]
@@ -215,12 +232,21 @@ button_21:
         beq     toggle_off_lstate
 
         @ Else, flip the lstate variable and set it to flashing
+        ldr r0, =msg21_desc1
+        bl printf
+
+        ldr     r0, =lstate
         movs    r1, #0x1
         str     r1, [r0]
 
         b       end_gpio_isr
 toggle_off_lstate:
+
+        ldr r0, =msg21_desc2
+        bl printf
+
         @ Flip the lstate variable and set it to not-flashing
+        ldr     r0, =lstate
         movs    r1, #0x0
         str     r1, [r0]
 
@@ -231,6 +257,10 @@ toggle_off_lstate:
         b       end_gpio_isr
 @ Subroutine for when button 22 is pressed
 button_22:
+
+        ldr r0, =msg22
+        bl printf
+        
         @ Check the lstate variable, if it is not-flashing, branch to the button20_22 subroutine
         ldr     r0, =lstate
         ldr     r1, [r0]
@@ -238,6 +268,9 @@ button_22:
         beq     button20_22
 
         @ Else, load up the ltimer variable and double it, halving the flashing rate
+        ldr r0, =msg22_desc
+        bl printf
+
         ldr     r0, =ltimer
         ldr     r1, [r0]
         movs    r2, #0x1
@@ -247,6 +280,10 @@ button_22:
         b       end_gpio_isr
 @ Subroutine for when button 22 or button 20 is pressed
 button20_22:
+
+        ldr r0, =msg2022
+        bl printf
+
         @ Check the lstate variable, if it is flashing, skip over it
         ldr     r0, =lstate
         ldr     r1, [r0]
@@ -270,3 +307,20 @@ end_gpio_isr:
 .data
 lstate: .word   DFLT_STATE_STRT
 ltimer: .word   DFLT_ALARM_TIME
+
+.align 4
+@ Messages for when buttons are pressed and when the ALARM0 interrupt occurs
+msg20: .asciz "Button 20 pressed!\n"
+msg20_desc: .asciz "The LED flashing rate is doubled.\n"
+
+msg21: .asciz "Button 21 pressed!\n"
+msg21_desc1: .asciz "The LED flashing is toggled off.\n"
+msg21_desc2: .asciz "The LED flashing is toggled on.\n"
+
+msg22: .asciz "Button 22 pressed!\n"
+msg22_desc: .asciz "The LED flashing rate is halved.\n"
+
+msg2022: .asciz "The LED flashing rate is reset to the default.\n"
+
+msg_off: .asciz "The LED has been turned off.\n"
+msg_on: .asciz "The LED has been turned on.\n"

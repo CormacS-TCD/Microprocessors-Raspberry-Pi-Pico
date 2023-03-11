@@ -103,12 +103,12 @@ install_alarm_isr:
 reset_alarm:
         ldr     r1, =time                                       @ Load in the current time value for flashing the LED
         ldr     r0, [r1]                                        
-        ldr     r2, =(TIMER_BASE)
+        ldr     r2, =(TIMER_BASE)                               @ Load in the base address for the timer
         movs    r1, #0x1
-        str     r1, [r2, #TIMER_INTE_OFFSET]
-        ldr     r1, [r2, #TIMER_TIMELR_OFFSET]
-        add     r1, r0
-        str     r1, [r2, #TIMER_ALARM0_OFFSET]
+        str     r1, [r2, #TIMER_INTE_OFFSET]                    
+        ldr     r1, [r2, #TIMER_TIMELR_OFFSET]                  @ Load in the current timer value
+        add     r1, r0                                          @ Increment the timer value by the time variable
+        str     r1, [r2, #TIMER_ALARM0_OFFSET]                  @ Store this future timer value in the offset address
 
         bx      lr
 

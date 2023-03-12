@@ -135,6 +135,9 @@ install_gpio_isr:
 toggle_led:
         push    {lr}                                            @ Push the link register to the stack
 
+        ldr r0, =msg_alarm
+        bl printf
+
         ldr     r2, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)       @ Write to bit 13 in ICPR to clear any gpio interrupts
         ldr     r0, =0x2001                                     @ 0x2001 = 2^13+1
         str     r0, [r2]                                        @ Store 0x2001 in the 13 bit position to disable the interrupt
@@ -310,17 +313,19 @@ ltimer: .word   DFLT_ALARM_TIME
 
 .align 4
 @ Messages for when buttons are pressed and when the ALARM0 interrupt occurs
-msg20: .asciz "Button 20 pressed!\n"
-msg20_desc: .asciz "The LED flashing rate is doubled.\n"
+msg20: .asciz "Button 20 pressed, a GPIO interrupt is taking place.\n"
+msg20_desc: .asciz "The LED flashing rate is doubled by pressing button 20\n"
 
-msg21: .asciz "Button 21 pressed!\n"
-msg21_desc1: .asciz "The LED flashing is toggled off.\n"
-msg21_desc2: .asciz "The LED flashing is toggled on.\n"
+msg21: .asciz "Button 21 pressed, a GPIO interrupt is taking place.\n"
+msg21_desc1: .asciz "The LED flashing is toggled off by pressing button 21.\n"
+msg21_desc2: .asciz "The LED flashing is toggled on by pressing button 21.\n"
 
-msg22: .asciz "Button 22 pressed!\n"
-msg22_desc: .asciz "The LED flashing rate is halved.\n"
+msg22: .asciz "Button 22 pressed, a GPIO interrupt is taking place.\n"
+msg22_desc: .asciz "The LED flashing rate is halved by pressing button 22.\n"
 
-msg2022: .asciz "The LED flashing rate is reset to the default.\n"
+msg2022: .asciz "The LED flashing rate is reset to the default by pressing either button 22 or button 20.\n"
 
-msg_off: .asciz "The LED has been turned off.\n"
-msg_on: .asciz "The LED has been turned on.\n"
+msg_alarm: .asciz "The timer value matches the alarm time, an ALARM0 interrupt is taking place.\n"
+
+msg_off: .asciz "The LED has been turned off by the ALARM0 interrupt.\n"
+msg_on: .asciz "The LED has been turned on by the ALARM0 interrupt.\n"

@@ -1,0 +1,21 @@
+Single-precision runtime on single-core: 0.595 seconds
+Double-precision runtime on single-core: 1.047 seconds
+Total application runtime on single-core: 1.642 seconds
+
+Single-precision runtime on multi-core: 0.595 seconds
+Double-precision runtime on multi-core: 1.047 seconds
+Total application runtime on multi-core: 1.047 seconds
+
+When running the functions on a single-core, the individual function 
+runtimes added up to form the total application runtimes. This is to 
+be expected when running them sequentially. 
+
+However, when running the functions on both cores in parallel, the 
+individual runtimes do not add up to for the total application runtime.
+The longest of the two runtimes forms the total application run time, 
+which is to be expected when you think above a multi-core process. 
+
+Assuming each function began running at the same time, they ran in parallel.
+This means that the application runtime is when either both functions end 
+at the same time, or when the longer one ends. Hence, the total application
+runtime is recorded as the longest runtime of the two functions.

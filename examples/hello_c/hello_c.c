@@ -14,14 +14,17 @@
  */
 int main() {
 
-#ifndef WOKWI
+//#ifndef WOKWI
     // Initialise the IO as we will be using the UART
     // Only required for hardware and not needed for Wokwi
     stdio_init_all();
-#endif
+//#endif
 
+    while(1) {
+        printf("Hello World!\n");
+
+    }
     // Print a console message to inform user what's going on.
-    printf("Hello World!\n");
 
     // Returning zero indicates everything went okay.
     return 0;

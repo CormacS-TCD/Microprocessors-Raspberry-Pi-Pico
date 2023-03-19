@@ -6,6 +6,7 @@ target_sources(lab06 PRIVATE lab06.c lab06.S)
 
 # Pull in commonly used features.
 target_link_libraries(lab06 PRIVATE pico_stdlib)
+target_link_libraries(lab06 PRIVATE pico_multicore)
 
 # Create map/bin/hex file etc.
 pico_add_extra_outputs(lab06)

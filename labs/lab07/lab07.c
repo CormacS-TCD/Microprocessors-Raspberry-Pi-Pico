@@ -238,4 +238,6 @@ bool set_xip_cache_en(bool cache_en) {
     //Cache will be disabled
     *hex = 2;
   }
+
+  return true;
 }

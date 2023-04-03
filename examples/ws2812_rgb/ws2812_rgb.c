@@ -64,17 +64,36 @@ int main() {
     // Do forever...
     while(true) {
 
-        // Set the color to red at half intensity
-        put_pixel(urgb_u32(0x7F, 0x00, 0x00));
-        sleep_ms(500);
+        // // Set the color to red at half intensity
+        // put_pixel(urgb_u32(0x3F, 0x00, 0x00));
+        // sleep_ms(500);
 
-        // Set the color to green at half intensity
-        put_pixel(urgb_u32(0x00, 0x7F, 0x00));
-        sleep_ms(500);
+        // // Set the color to green at half intensity
+        // put_pixel(urgb_u32(0x00, 0x2F, 0x00));
+        // sleep_ms(500);
 
-        // Set the color to blue at half intensity
-        put_pixel(urgb_u32(0x00, 0x00, 0x7F));
-        sleep_ms(500);
+        // // Set the color to blue at half intensity
+        // put_pixel(urgb_u32(0x00, 0x00, 0x2F));
+        // sleep_ms(500);
+
+        // put_pixel(urgb_u32(0x2F, 0x0F, 0x00));
+        // sleep_ms(500);
+
+        // Set the color to red
+        put_pixel(urgb_u32(0x1F, 0x00, 0x00));
+        sleep_ms(2000);
+
+        // Set the color to orange
+        put_pixel(urgb_u32(0x1F, 0x08, 0x00));
+        sleep_ms(2000);
+
+        // Set the color to yellow
+        put_pixel(urgb_u32(0x24, 0x1F, 0x00));
+        sleep_ms(2000);
+
+        // Set the color to green
+        put_pixel(urgb_u32(0x00, 0x1F, 0x00));
+        sleep_ms(2000);
 
     }
 
